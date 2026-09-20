@@ -97,7 +97,7 @@ Redo transport and Managed Recovery were also validated by generating log switch
 
 The complete command sequence and actual execution output are available here:
 
-👉 **[Oracle 19c Physical_Standby_Active_Data_Guard_Command & Execution Output](Oracle_19c_Physical_Standby_Active_Data_Guard.log)**
+👉 **[Oracle 19c Physical_Standby_Active_Data_Guard_Command & Execution Output](Oracle19c_Physical_Standby_Active_Data_Guard.log)**
 
 The main command/execution file for this lab is:
 
