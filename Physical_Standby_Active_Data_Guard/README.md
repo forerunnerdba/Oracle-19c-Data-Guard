@@ -99,12 +99,6 @@ The complete command sequence and actual execution output are available here:
 
 👉 **[Oracle 19c Physical_Standby_Active_Data_Guard_Command & Execution Output](Oracle19c_Physical_Standby_Active_Data_Guard.log)**
 
-The main command/execution file for this lab is:
-
-```text
-Oracle19c_Physical_Standby_Active_Data_Guard.sh
-```
-
 It contains the detailed commands, configuration examples, and execution output from the lab.
 
 ## Important
@@ -148,3 +142,30 @@ This is **Part 1** of my Oracle 19c Data Guard series:
 - **Part 3 — Test It:** Switchover, Failover & Reinstatement
 
 The LinkedIn article provides the explanation and configuration walkthrough, while this repository contains the detailed command and execution log.
+
+## 👨‍💻 Author
+
+**Chakravarthy P**
+
+Oracle Database Administrator / SME
+
+Areas of interest:
+
+* Oracle Database
+* Oracle RAC
+* Oracle ASM
+* Oracle Data Guard
+* Oracle Restart
+* Oracle Cloud
+* Microsoft Azure
+* Database Migration
+* Oracle Patching
+* Ansible Automation
+* Linux
+
+## ⭐ Feedback
+
+If you find this documentation useful, feel free to share your feedback, suggestions or corrections. Please consider giving the repository a Star.
+
+The objective is to continuously improve the documentation and capture practical Oracle DBA deployment experiences.
+
