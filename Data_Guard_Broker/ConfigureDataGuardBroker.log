@@ -1,0 +1,351 @@
+***************************************************************************************************************************************
+Configuring Data Guard Broker
+***************************************************************************************************************************************
+
+1. Enable Flashback Database in Primary and Standby Databases
+Enabling Flashback Database ensures that Data Guard Broker can manage failovers and reinstates efficiently, reducing downtime and administrative effort.
+#Primary
+
+SQL> ALTER DATABASE FLASHBACK ON
+
+Database altered.
+
+#Standby
+SQL> ALTER DATABASE FLASHBACK ON;
+
+Database altered.
+
+2. Creating Data Guard Broker Configuraiton Files and Enabling them in Primary and Standby Databases.
+
+#Primary
+SQL> ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1='+DATA/PRIMCA/DATAGUARDCONFIG/dgb_config01.ora' SCOPE=BOTH;
+
+System altered.
+SQL> ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2='+FRA/PRIMCA/DATAGUARDCONFIG/dgb_config02.ora' SCOPE=BOTH;
+
+System altered.
+
+#Verify the Data Guard Broker Configuraiton Files
+SQL> show parameter DG_BROKER
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+dg_broker_config_file1               string      +DATA/PRIMCA/DATAGUARDCONFIG/d
+                                                 gb_config01.ora
+dg_broker_config_file2               string      +FRA/PRIMCA/DATAGUARDCONFIG/dg
+                                                 b_config02.ora
+dg_broker_start                      boolean     FALSE
+
+
+SQL> ALTER SYSTEM SET DG_BROKER_START=TRUE SCOPE=BOTH; 
+
+System altered.
+
+SQL> show parameter DG_BROKER
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+dg_broker_config_file1               string      +DATA/PRIMCA/DATAGUARDCONFIG/d
+                                                 gb_config01.ora
+dg_broker_config_file2               string      +FRA/PRIMCA/DATAGUARDCONFIG/dg
+                                                 b_config02.ora
+dg_broker_start                      boolean     TRUE
+
+
+#Standby
+SQL> ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1='+DATA/STDBYCA/DATAGUARDCONFIG/dgb_config01.ora' SCOPE=BOTH;
+
+System altered.
+
+SQL> ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2='+FRA/STDBYCA/DATAGUARDCONFIG/dgb_config02.ora' SCOPE=BOTH;
+
+System altered.
+
+#Verify the Data Guard Broker Configuraiton Files
+
+SQL> show parameter DG_BROKER
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+dg_broker_config_file1               string      +DATA/STDBYCA/DATAGUARDCONFIG/
+                                                 dgb_config01.ora
+dg_broker_config_file2               string      +FRA/STDBYCA/DATAGUARDCONFIG/d
+                                                 gb_config02.ora
+dg_broker_start                      boolean     FALSE
+
+SQL> ALTER SYSTEM SET DG_BROKER_START=TRUE SCOPE=BOTH; 
+
+System altered.
+
+3. Reset LOG_ARCHIVE_DEST_2 on Standby only
+ On the standby to remove any manual redo transport configuration, allowing Data Guard Broker to fully control and correctly configure redo transport without conflicts.
+
+SQL> ALTER SYSTEM RESET LOG_ARCHIVE_DEST_2 SCOPE=BOTH;
+
+System altered.
+
+SQL> show parameter DG_BROKER
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+dg_broker_config_file1               string      +DATA/STDBYCA/DATAGUARDCONFIG/
+                                                 dgb_config01.ora
+dg_broker_config_file2               string      +FRA/STDBYCA/DATAGUARDCONFIG/d
+                                                 gb_config02.ora
+dg_broker_start                      boolean     TRUE
+
+
+4. Creating Data Guard Broker Configuration
+
+[oracle@caoraobs admin]$ dgmgrl sys/**********@PRIMCA as sysdba
+DGMGRL for Linux: Release 19.0.0.0.0 - Production on Sat Sep 5 03:33:16 2026
+Version 19.32.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Welcome to DGMGRL, type "help" for information.
+Connected to "PRIMCA"
+Connected as SYSDBA.
+DGMGRL> CREATE CONFIGURATION 'CAOCIPR_DG' AS PRIMARY DATABASE IS 'PRIMCA' CONNECT IDENTIFIER IS PRIMCA;
+Configuration "CAOCIPR_DG" created with primary database "PRIMCA"
+DGMGRL> ADD DATABASE 'STDBYCA' AS CONNECT IDENTIFIER IS STDBYCA MAINTAINED AS PHYSICAL;
+Database "STDBYCA" added
+
+5. Show Configuration
+DGMGRL> SHOW CONFIGURATION VERBOSE;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+DISABLED
+
+6. Enable Configuration
+DGMGRL> ENABLE CONFIGURATION;
+Enabled.
+DGMGRL> SHOW CONFIGURATION VERBOSE;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 17 seconds ago)
+
+
+DGMGRL> ENABLE DATABASE PRIMCA;
+Enabled.
+DGMGRL> ENABLE DATABASE STDBYCA;
+Enabled.
+
+DGMGRL> SHOW CONFIGURATION VERBOSE;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 17 seconds ago)
+
+
+DGMGRL> SHOW DATABASE VERBOSE PRIMCA
+
+Database - PRIMCA
+
+  Role:               PRIMARY
+  Intended State:     TRANSPORT-ON
+  Instance(s):
+    PRIMCA
+
+  Properties:
+    DGConnectIdentifier             = 'primca'
+    ObserverConnectIdentifier       = ''
+    FastStartFailoverTarget         = ''
+    PreferredObserverHosts          = ''
+    LogShipping                     = 'ON'
+    RedoRoutes                      = ''
+    LogXptMode                      = 'ASYNC'
+    DelayMins                       = '0'
+    Binding                         = 'optional'
+    MaxFailure                      = '0'
+    ReopenSecs                      = '300'
+    NetTimeout                      = '30'
+    RedoCompression                 = 'DISABLE'
+    PreferredApplyInstance          = ''
+    ApplyInstanceTimeout            = '0'
+    ApplyLagThreshold               = '30'
+    TransportLagThreshold           = '30'
+    TransportDisconnectedThreshold  = '30'
+    ApplyParallel                   = 'AUTO'
+    ApplyInstances                  = '0'
+    StandbyFileManagement           = ''
+    ArchiveLagTarget                = '0'
+    LogArchiveMaxProcesses          = '0'
+    LogArchiveMinSucceedDest        = '0'
+    DataGuardSyncLatency            = '0'
+    LogArchiveTrace                 = '0'
+    LogArchiveFormat                = ''
+    DbFileNameConvert               = ''
+    LogFileNameConvert              = ''
+    ArchiveLocation                 = ''
+    AlternateLocation               = ''
+    StandbyArchiveLocation          = ''
+    StandbyAlternateLocation        = ''
+    InconsistentProperties          = '(monitor)'
+    InconsistentLogXptProps         = '(monitor)'
+    LogXptStatus                    = '(monitor)'
+    SendQEntries                    = '(monitor)'
+    RecvQEntries                    = '(monitor)'
+    UserManagedParams               = ''
+    HostName                        = 'caoradb04'
+    StaticConnectIdentifier         = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<Primary_Hostname>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=PRIMCA_DGMGRL)(INSTANCE_NAME=PRIMCA)(SERVER=DEDICATED)))'
+    TopWaitEvents                   = '(monitor)'
+    SidName                         = '(monitor)'
+
+  Log file locations:
+    Alert log               : /u01/app/oracle/diag/rdbms/primca/PRIMCA/trace/alert_PRIMCA.log
+    Data Guard Broker log   : /u01/app/oracle/diag/rdbms/primca/PRIMCA/trace/drcPRIMCA.log
+
+Database Status:
+SUCCESS
+
+
+DGMGRL> SHOW DATABASE VERBOSE STDBYCA
+
+Database - STDBYCA
+
+  Role:               PHYSICAL STANDBY
+  Intended State:     APPLY-ON
+  Transport Lag:      0 seconds (computed 0 seconds ago)
+  Apply Lag:          0 seconds (computed 0 seconds ago)
+  Average Apply Rate: 8.00 KByte/s
+  Active Apply Rate:  1.36 MByte/s
+  Maximum Apply Rate: 2.76 MByte/s
+  Real Time Query:    ON
+  Instance(s):
+    STDBYCA
+
+  Properties:
+    DGConnectIdentifier             = 'stdbyca'
+    ObserverConnectIdentifier       = ''
+    FastStartFailoverTarget         = ''
+    PreferredObserverHosts          = ''
+    LogShipping                     = 'ON'
+    RedoRoutes                      = ''
+    LogXptMode                      = 'ASYNC'
+    DelayMins                       = '0'
+    Binding                         = 'OPTIONAL'
+    MaxFailure                      = '0'
+    ReopenSecs                      = '300'
+    NetTimeout                      = '30'
+    RedoCompression                 = 'DISABLE'
+    PreferredApplyInstance          = ''
+    ApplyInstanceTimeout            = '0'
+    ApplyLagThreshold               = '30'
+    TransportLagThreshold           = '30'
+    TransportDisconnectedThreshold  = '30'
+    ApplyParallel                   = 'AUTO'
+    ApplyInstances                  = '0'
+    StandbyFileManagement           = ''
+    ArchiveLagTarget                = '0'
+    LogArchiveMaxProcesses          = '0'
+    LogArchiveMinSucceedDest        = '0'
+    DataGuardSyncLatency            = '0'
+    LogArchiveTrace                 = '0'
+    LogArchiveFormat                = ''
+    DbFileNameConvert               = ''
+    LogFileNameConvert              = ''
+    ArchiveLocation                 = ''
+    AlternateLocation               = ''
+    StandbyArchiveLocation          = ''
+    StandbyAlternateLocation        = ''
+    InconsistentProperties          = '(monitor)'
+    InconsistentLogXptProps         = '(monitor)'
+    LogXptStatus                    = '(monitor)'
+    SendQEntries                    = '(monitor)'
+    RecvQEntries                    = '(monitor)'
+    UserManagedParams               = ''
+    HostName                        = 'caoradb05'
+    StaticConnectIdentifier         = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<Standby_Hostname>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=STDBYCA_DGMGRL)(INSTANCE_NAME=STDBYCA)(SERVER=DEDICATED)))'
+    TopWaitEvents                   = '(monitor)'
+    SidName                         = '(monitor)'
+
+  Log file locations:
+    Alert log               : /u01/app/oracle/diag/rdbms/stdbyca/STDBYCA/trace/alert_STDBYCA.log
+    Data Guard Broker log   : /u01/app/oracle/diag/rdbms/stdbyca/STDBYCA/trace/drcSTDBYCA.log
+
+Database Status:
+SUCCESS
