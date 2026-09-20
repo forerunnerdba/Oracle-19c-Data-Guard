@@ -42,6 +42,14 @@ For the complete commands and actual execution output, refer to:
 - Primary Database Status — `SUCCESS`
 - Standby Database Status — `SUCCESS`
 
+Files
+
+The complete command sequence and actual execution output are available here:
+
+👉 **[Oracle 19c DataGuard Broker Configuration Command & Execution Output](ConfigureDataGuardBroker.log.)**
+
+It contains the detailed commands, configuration examples, and execution output from the lab.
+
 ## Data Guard Series
 
 - **Part 1 — Build It:** Physical Standby & Active Data Guard
