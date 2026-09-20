@@ -52,7 +52,7 @@ It contains the detailed commands, configuration examples, and execution output 
 
 ## Data Guard Series
 
-- **Part 1 — Build It:** Physical Standby & Active Data Guard(https://www.linkedin.com/posts/cpatchigolla_oracle-oracledatabase-oracle19c-ugcPost-7506918350996840449-JuJF/)
+- **Part 1 — Build It:** Physical Standby & Active Data Guard
 - **Part 2 — Manage It:** Data Guard Broker
 - **Part 3 — Test It:** Switchover, Failover & Reinstatement
 
