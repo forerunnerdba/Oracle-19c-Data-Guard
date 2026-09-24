@@ -71,6 +71,12 @@ The final environment returned to:
 - Force Logging — `YES`
 - Broker Configuration Status — `SUCCESS`
 
+##Files
+
+The complete command sequence and actual execution output are available here:
+
+👉 Oracle 19c DataGuard Broker Switchover Failover Reinstate Command & Execution Output
+
 ## Data Guard Series
 
 - **Part 1 — Build It:** Physical Standby & Active Data Guard
