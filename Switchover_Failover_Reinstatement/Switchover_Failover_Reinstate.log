@@ -1,0 +1,600 @@
+***************************************************************************************************************************************************************
+Switchover & Failover Testing using DGMGRL
+***************************************************************************************************************************************************************
+
+#Switchover (Planned Role Transition)
+
+When to use: Both Primary and Standby are healthy and in sync. No data loss. Resolve any errors before switchover
+
+1. Pre-requisite Checks before running Switchover. Connect to Primary Database
+
+[oracle@caoradb04 ~]$ dgmgrl
+DGMGRL for Linux: Release 19.0.0.0.0 - Production on Thu Sep 17 15:48:50 2026
+Version 19.32.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Welcome to DGMGRL, type "help" for information.
+DGMGRL> connect sys/<SYS_PASSWORD>@PRIMCA
+Connected to "PRIMCA"
+Connected as SYSDBA.
+
+DGMGRL> SHOW CONFIGURATION VERBOSE;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 17 seconds ago)
+
+
+DGMGRL> ENABLE DATABASE PRIMCA;
+Enabled.
+DGMGRL> ENABLE DATABASE STDBYCA;
+Enabled.
+
+DGMGRL> SHOW CONFIGURATION VERBOSE;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 17 seconds ago)
+
+
+DGMGRL> SHOW DATABASE VERBOSE PRIMCA
+
+Database - PRIMCA
+
+  Role:               PRIMARY
+  Intended State:     TRANSPORT-ON
+  Instance(s):
+    PRIMCA
+
+  Properties:
+    DGConnectIdentifier             = 'primca'
+    ObserverConnectIdentifier       = ''
+    FastStartFailoverTarget         = ''
+    PreferredObserverHosts          = ''
+    LogShipping                     = 'ON'
+    RedoRoutes                      = ''
+    LogXptMode                      = 'ASYNC'
+    DelayMins                       = '0'
+    Binding                         = 'optional'
+    MaxFailure                      = '0'
+    ReopenSecs                      = '300'
+    NetTimeout                      = '30'
+    RedoCompression                 = 'DISABLE'
+    PreferredApplyInstance          = ''
+    ApplyInstanceTimeout            = '0'
+    ApplyLagThreshold               = '30'
+    TransportLagThreshold           = '30'
+    TransportDisconnectedThreshold  = '30'
+    ApplyParallel                   = 'AUTO'
+    ApplyInstances                  = '0'
+    StandbyFileManagement           = ''
+    ArchiveLagTarget                = '0'
+    LogArchiveMaxProcesses          = '0'
+    LogArchiveMinSucceedDest        = '0'
+    DataGuardSyncLatency            = '0'
+    LogArchiveTrace                 = '0'
+    LogArchiveFormat                = ''
+    DbFileNameConvert               = ''
+    LogFileNameConvert              = ''
+    ArchiveLocation                 = ''
+    AlternateLocation               = ''
+    StandbyArchiveLocation          = ''
+    StandbyAlternateLocation        = ''
+    InconsistentProperties          = '(monitor)'
+    InconsistentLogXptProps         = '(monitor)'
+    LogXptStatus                    = '(monitor)'
+    SendQEntries                    = '(monitor)'
+    RecvQEntries                    = '(monitor)'
+    UserManagedParams               = ''
+    HostName                        = 'caoradb04'
+    StaticConnectIdentifier         = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<Primary_Hostname>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=PRIMCA_DGMGRL)(INSTANCE_NAME=PRIMCA)(SERVER=DEDICATED)))'
+    TopWaitEvents                   = '(monitor)'
+    SidName                         = '(monitor)'
+
+  Log file locations:
+    Alert log               : /u01/app/oracle/diag/rdbms/primca/PRIMCA/trace/alert_PRIMCA.log
+    Data Guard Broker log   : /u01/app/oracle/diag/rdbms/primca/PRIMCA/trace/drcPRIMCA.log
+
+Database Status:
+SUCCESS
+
+DGMGRL> SHOW DATABASE VERBOSE STDBYCA
+
+Database - STDBYCA
+
+  Role:               PHYSICAL STANDBY
+  Intended State:     APPLY-ON
+  Transport Lag:      0 seconds (computed 0 seconds ago)
+  Apply Lag:          0 seconds (computed 0 seconds ago)
+  Average Apply Rate: 8.00 KByte/s
+  Active Apply Rate:  1.36 MByte/s
+  Maximum Apply Rate: 2.76 MByte/s
+  Real Time Query:    ON
+  Instance(s):
+    STDBYCA
+
+  Properties:
+    DGConnectIdentifier             = 'stdbyca'
+    ObserverConnectIdentifier       = ''
+    FastStartFailoverTarget         = ''
+    PreferredObserverHosts          = ''
+    LogShipping                     = 'ON'
+    RedoRoutes                      = ''
+    LogXptMode                      = 'ASYNC'
+    DelayMins                       = '0'
+    Binding                         = 'OPTIONAL'
+    MaxFailure                      = '0'
+    ReopenSecs                      = '300'
+    NetTimeout                      = '30'
+    RedoCompression                 = 'DISABLE'
+    PreferredApplyInstance          = ''
+    ApplyInstanceTimeout            = '0'
+    ApplyLagThreshold               = '30'
+    TransportLagThreshold           = '30'
+    TransportDisconnectedThreshold  = '30'
+    ApplyParallel                   = 'AUTO'
+    ApplyInstances                  = '0'
+    StandbyFileManagement           = ''
+    ArchiveLagTarget                = '0'
+    LogArchiveMaxProcesses          = '0'
+    LogArchiveMinSucceedDest        = '0'
+    DataGuardSyncLatency            = '0'
+    LogArchiveTrace                 = '0'
+    LogArchiveFormat                = ''
+    DbFileNameConvert               = ''
+    LogFileNameConvert              = ''
+    ArchiveLocation                 = ''
+    AlternateLocation               = ''
+    StandbyArchiveLocation          = ''
+    StandbyAlternateLocation        = ''
+    InconsistentProperties          = '(monitor)'
+    InconsistentLogXptProps         = '(monitor)'
+    LogXptStatus                    = '(monitor)'
+    SendQEntries                    = '(monitor)'
+    RecvQEntries                    = '(monitor)'
+    UserManagedParams               = ''
+    HostName                        = 'caoradb05'
+    StaticConnectIdentifier         = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<Standby_Hostname>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=STDBYCA_DGMGRL)(INSTANCE_NAME=STDBYCA)(SERVER=DEDICATED)))'
+    TopWaitEvents                   = '(monitor)'
+    SidName                         = '(monitor)'
+
+  Log file locations:
+    Alert log               : /u01/app/oracle/diag/rdbms/stdbyca/STDBYCA/trace/alert_STDBYCA.log
+    Data Guard Broker log   : /u01/app/oracle/diag/rdbms/stdbyca/STDBYCA/trace/drcSTDBYCA.log
+
+Database Status:
+SUCCESS
+
+2. Switchover
+
+DGMGRL> SWITCHOVER TO STDBYCA;
+Performing switchover NOW, please wait...
+Operation requires a connection to database "STDBYCA"
+Connecting ...
+Connected to "STDBYCA"
+Connected as SYSDBA.
+New primary database "STDBYCA" is opening...
+Oracle Clusterware is restarting database "PRIMCA" ...
+Connected to "PRIMCA"
+Switchover succeeded, new primary is "stdbyca"
+
+3. Monitor the Data Guard Broker Logs for Primary and Standby Database to monitor the real-time role transitions
+
+#Primary Log - Role Transition from Primary to Physical Standby
+[oracle@caoradb04 ~]$ tail -f /u01/app/oracle/diag/rdbms/primca/PRIMCA/trace/drcPRIMCA.log
+  PRIMCA                          Primary Database           0x01010000  YES
+  STDBYCA                         Physical Standby Database  0x02010000  YES
+2026-09-17T14:06:10.168+00:00
+Failed to send message to member STDBYCA. Error code is ORA-16525.
+Configuration Validation Results:
+      Member STDBYCA: ORA-16525: The Oracle Data Guard broker is not yet available.
+2026-09-17T15:49:41.939+00:00
+Forwarding MON_PROPERTY operation to member STDBYCA for processing
+Forwarding MON_PROPERTY operation to member STDBYCA for processing
+Forwarding MON_PROPERTY operation to member STDBYCA for processing
+2026-09-17T15:53:23.720+00:00
+Initiating a healthcheck...
+CLI_CMD SWITCHOVER TO STDBYCA
+Switchover to physical standby database cannot be initiated from the primary database
+redirecting connection to switchover target database STDBYCA...
+...using connect identifier: stdbyca
+CLI_CMD SWITCHOVER TO STDBYCA
+Notifying Oracle Clusterware to prepare primary database for switchover
+2026-09-17T15:53:25.743+00:00
+Executing SQL: [ALTER DATABASE SWITCHOVER TO 'STDBYCA']
+2026-09-17T15:53:34.507+00:00
+SQL [ALTER DATABASE SWITCHOVER TO 'STDBYCA'] executed successfully
+2026-09-17T15:53:37.622+00:00
+Switchover successful
+2026-09-17T15:53:38.768+00:00
+Notifying Clusterware to restart this instance for Switchover
+2026-09-17T15:53:39.863+00:00
+Shutting down instance after Switchover
+..............................................
+..............................................
+  Fast-Start Failover (FSFO): DISABLED, flags=0x0, version=24
+  Name                            Member Type                Handle      Enabled
+  STDBYCA                         Primary Database           0x02010000  YES
+  PRIMCA                          Physical Standby Database  0x01010000  YES
+2026-09-17T15:54:04.471+00:00
+Physical standby restart after broker operation requires Oracle Clusterware buildup
+Notifying Oracle Clusterware to buildup
+2026-09-17T15:54:06.980+00:00
+Configuration Validation Results:
+      Primary database STDBYCA returned: ORA-0: normal, successful completion
+Member PRIMCA successfully completed version check
+Broker configuration file is current, completing initialization
+2026-09-17T15:54:19.439+00:00
+Starting redo apply services...
+2026-09-17T15:54:48.805+00:00
+
+
+#Standy Log - Role Transition from Physical Standby to Primary
+2026-09-17T15:53:24.683+00:00
+Initiating a healthcheck...
+Forwarding CTL_SWITCH operation to member PRIMCA for processing
+FSFO SetState(st=12 "SET OBID", fl=0x0 "", ob=0x1, tgt=0, v=0)
+Updated broker configuration file available, loading from "+FRA/STDBYCA/DATAGUARDCONFIG/dgb_config02.ora"
+2026-09-17T15:53:26.628+00:00
+Switchover processing to this database has started
+Notifying Oracle Clusterware to prepare target standby database for switchover
+2026-09-17T15:53:30.678+00:00
+Switchover in progress...
+2026-09-17T15:53:38.665+00:00
+Updated broker configuration file available, loading from "+DATA/STDBYCA/DATAGUARDCONFIG/dgb_config01.ora"
+New primary database after switchover
+Informing client: OPENING instance 'STDBYCA' of database 'STDBYCA'
+Informing client: CLUSTERWARE RESTARTING instance 'PRIMCA' of database 'PRIMCA'
+Switchover completed, notifying client
+Proceeding with buildup after switchover...
+Notifying Oracle Clusterware to buildup the primary database after switchover
+2026-09-17T15:53:39.752+00:00
+Opening database after Switchover
+2026-09-17T15:53:50.919+00:00
+Evaluating archivelog destinations for switchover
+SWITCHOVER TO STDBYCA completed successfully, new primary database is STDBYCA
+obhosts cache updated; 0x88547c98, miv=0, prop=""
+2026-09-17T15:54:49.964+00:00
+Data Guard Broker Status Summary:
+  Type                        Name                             Severity  Status
+  Configuration               CAOCIPR_DG                        Warning  ORA-16607: one or more members have failed
+  Primary Database            STDBYCA                           Success  ORA-0: normal, successful completion
+  Physical Standby Database   PRIMCA                              Error  ORA-16786: unable to access Oracle Data Guard broker configuration files
+  Fast-Start Failover: flags=0x0 (DISABLED)
+
+
+
+4. Verify DGMGRL after Role Transition
+
+DGMGRL> show configuration verbose;
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  STDBYCA - Primary database
+    PRIMCA  - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 17 seconds ago)
+
+5. Verify Databases for the role switch
+SQL> connect sys/<SYS_PASSWORD>@PRIMCA as sysdba
+Connected.
+SQL> set line 200
+select name, db_unique_name, database_role, open_mode, protection_mode, FORCE_LOGGING, SWITCHOVER_STATUS FROM gV$DATABASE;
+SQL>
+NAME      DB_UNIQUE_NAME                 DATABASE_ROLE    OPEN_MODE            PROTECTION_MODE      FORCE_LOGGING                           SWITCHOVER_STATUS
+--------- ------------------------------ ---------------- -------------------- -------------------- --------------------------------------- --------------------
+PRIMCA    PRIMCA                         PHYSICAL STANDBY READ ONLY WITH APPLY MAXIMUM PERFORMANCE  YES                                     NOT ALLOWED
+
+SQL> connect sys/<SYS_PASSWORD>@STDBYCA as sysdba
+Connected.
+SQL> /
+
+NAME      DB_UNIQUE_NAME                 DATABASE_ROLE    OPEN_MODE            PROTECTION_MODE      FORCE_LOGGING                           SWITCHOVER_STATUS
+--------- ------------------------------ ---------------- -------------------- -------------------- --------------------------------------- --------------------
+PRIMCA    STDBYCA                        PRIMARY          READ WRITE           MAXIMUM PERFORMANCE  YES                                     TO STANDBY
+
+
+6. Failover
+
+When to use: Primary is unavailable (crash, network failure, etc.).
+Note: This may cause data loss depending on protection mode and lag.
+
+Connect to Standby Database
+
+[oracle@caoradb04 ~]$ dgmgrl
+DGMGRL for Linux: Release 19.0.0.0.0 - Production on Thu Sep 17 16:04:15 2026
+Version 19.32.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Welcome to DGMGRL, type "help" for information.
+DGMGRL> connect sys/<SYS_PASSWORD>@PRIMCA
+Connected to "PRIMCA"
+Connected as SYSDBA.
+
+DGMGRL> FAILOVER TO PRIMCA;
+Performing failover NOW, please wait...
+Failover succeeded, new primary is "primca"
+
+
+7. Check the Configuration after failover
+
+DGMGRL> show configuration verbose
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database (disabled)
+      ORA-16661: the standby database needs to be reinstated
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 107 seconds ago)
+
+8. After Failover – Reinstate Old Primary
+   After Failover we need to re-instante Old Primary Database on the New Primary Server Once the old Primary is available again:
+
+DGMGRL> REINSTATE DATABASE STDBYCA;
+Reinstating database "stdbyca", please wait...
+Oracle Clusterware is restarting database "STDBYCA" ...
+Connected to an idle instance.
+Connected to an idle instance.
+Connected to "STDBYCA"
+Continuing to reinstate database "stdbyca" ...
+Reinstatement of database "stdbyca" succeeded
+
+9. Verify the Configuration
+
+DGMGRL> SHOW CONFIGURATION VERBOSE
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+      Warning: ORA-16809: multiple warnings detected for the member
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+WARNING   (status updated 57 seconds ago)
+
+#After couple of minutes the warnings will be automatically cleared
+
+DGMGRL> /
+
+Configuration - CAOCIPR_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  PRIMCA  - Primary database
+    STDBYCA - Physical standby database
+
+  Properties:
+    FastStartFailoverThreshold      = '30'
+    OperationTimeout                = '30'
+    TraceLevel                      = 'USER'
+    FastStartFailoverLagLimit       = '30'
+    CommunicationTimeout            = '180'
+    ObserverReconnect               = '0'
+    FastStartFailoverLagGraceTime   = '0'
+    FastStartFailoverAutoReinstate  = 'TRUE'
+    FastStartFailoverPmyShutdown    = 'TRUE'
+    BystandersFollowRoleChange      = 'ALL'
+    ObserverOverride                = 'FALSE'
+    ExternalDestination1            = ''
+    ExternalDestination2            = ''
+    PrimaryLostWriteAction          = 'CONTINUE'
+    ConfigurationWideServiceName    = 'PRIMCA_CFG'
+    FastStartFailoverLagType        = 'APPLY'
+    PrimaryDatabaseCandidates       = ''
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 33 seconds ago)
+
+DGMGRL>
+
+10. Monitor the Data Guard Broker Logs for Primary and Standby Database to monitor the real-time role transitions
+
+#Primary Log - Role Transition from Physical Standby to Primary
+CLI_CMD FAILOVER TO PRIMCA
+Starting FAILOVER
+Beginning failover to database PRIMCA.
+Notifying Oracle Clusterware to prepare database for failover
+Executing SQL: [ALTER DATABASE FAILOVER TO PRIMCA]
+2026-09-17T16:04:35.531+00:00
+SQL [ALTER DATABASE FAILOVER TO PRIMCA] executed successfully
+Notifying Oracle Clusterware to buildup the primary database after failover
+Opening database after Failover
+2026-09-17T16:04:47.672+00:00
+Evaluating archivelog destinations for failover
+Redo transport to Physical Standby Database STDBYCA has been deferred
+Posting DOWN alert for database 'STDBYCA'...
+        ... because of Data Guard Failover
+FAILOVER TO PRIMCA completed successfully, new primary database is PRIMCA
+obhosts cache updated; 0x884f4b50, miv=0, prop=""
+2026-09-17T16:06:00.325+00:00
+CLI_CMD REINSTATE DATABASE STDBYCA
+Database STDBYCA can be reinstated
+2026-09-17T16:06:10.772+00:00
+Member STDBYCA returned status 16732; severity 16502 during phase -1194512460 of reinstate
+Informing client: CLUSTERWARE RESTARTING instance 'STDBYCA' of database 'STDBYCA'
+Member PRIMCA returned status 16570; severity 16502 during phase -1194512460 of reinstate
+REINSTATE DATABASE STDBYCA requires restart of STDBYCA
+2026-09-17T16:06:40.159+00:00
+CLI_CMD REINSTATE DATABASE STDBYCA
+Database STDBYCA can be reinstated
+2026-09-17T16:07:41.620+00:00
+Successfully completed reinstatement of database STDBYCA
+2026-09-17T16:07:50.479+00:00
+REINSTATE DATABASE STDBYCA completed successfully
+Data Guard Broker Status Summary:
+  Type                        Name                             Severity  Status
+  Configuration               CAOCIPR_DG                        Warning  ORA-16608: one or more members have warnings
+  Primary Database            PRIMCA                            Success  ORA-0: normal, successful completion
+  Physical Standby Database   STDBYCA                           Warning  ORA-16809: multiple warnings detected for the member
+  Fast-Start Failover: flags=0x0 (DISABLED)
+
+#Standby Log - Role Transition from Primary to Physical Standby
+2026-09-17T16:06:54.412+00:00
+Data Guard notifying Oracle Clusterware to prepare database for role change
+Database Reinstate needs instance count to be reduced to 1
+Flashback SCN is 1384279; DB checkpoint SCN is 1381790. Flashback to SCN 1384279.
+2026-09-17T16:06:56.046+00:00
+Physical Standby Reinstatement: Converting old primary to a physical standby
+2026-09-17T16:07:30.673+00:00
+Conversion to physical standby database succeeded
+Instance restart not required
+Purging diverged redo data on resetlogs branch 1243139874, starting SCN 1384280
+Purged 0 archived logs
+2026-09-17T16:07:33.771+00:00
+Updated broker configuration file available, loading from "+DATA/STDBYCA/DATAGUARDCONFIG/dgb_config01.ora"
+2026-09-17T16:07:42.640+00:00
+Updated broker configuration file available, loading from "+FRA/STDBYCA/DATAGUARDCONFIG/dgb_config02.ora"
+2026-09-17T16:07:50.344+00:00
+Warning: Last communication time from redo source could not be determined
+2026-09-17T16:07:51.442+00:00
+Notifying Oracle Clusterware to buildup after database reinstatement
+
+11. Verify the Role Switch in Database Views
+
+SQL> connect sys/<SYS_PASSWORD>@PRIMCA as sysdba
+Connected.
+SQL> set line 200
+select name, db_unique_name, database_role, open_mode, protection_mode, FORCE_LOGGING, SWITCHOVER_STATUS FROM gV$DATABASE;
+SQL>
+NAME                 DB_UNIQUE_NAME                 DATABASE_ROLE    OPEN_MODE            PROTECTION_MODE      FORCE_LOGGING                           SWITCHOVER_STATUS
+-------------------- ------------------------------ ---------------- -------------------- -------------------- --------------------------------------- --------------------
+PRIMCA               PRIMCA                         PRIMARY          READ WRITE           MAXIMUM PERFORMANCE  YES                                     TO STANDBY
+
+SQL> connect sys/<SYS_PASSWORD>@STDBYCA as sysdba
+Connected.
+SQL> set line 200
+SQL> select name, db_unique_name, database_role, open_mode, protection_mode, FORCE_LOGGING, SWITCHOVER_STATUS FROM gV$DATABASE;
+SQL>
+NAME      DB_UNIQUE_NAME                 DATABASE_ROLE    OPEN_MODE            PROTECTION_MODE      FORCE_LOGGING                           SWITCHOVER_STATUS
+--------- ------------------------------ ---------------- -------------------- -------------------- --------------------------------------- --------------------
+PRIMCA    STDBYCA                        PHYSICAL STANDBY READ ONLY WITH APPLY MAXIMUM PERFORMANCE  YES                                     NOT ALLOWED
