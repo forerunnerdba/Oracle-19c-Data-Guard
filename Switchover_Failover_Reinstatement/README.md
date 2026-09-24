@@ -2,9 +2,11 @@
 
 This repository contains the **commands and execution output** from my Oracle 19c Data Guard lab covering **switchover, failover, and reinstatement using DGMGRL**.
 
-For the complete commands and actual execution output, refer to:
+##Files
 
-`Switchover_Failover.sh`
+The complete command sequence and actual execution output are available here:
+
+👉 **[Oracle 19c DataGuard Broker Switchover Failover Reinstate Command & Execution Output](Switchover_Failover_Reinstate.log)**
 
 ## Environment
 
@@ -71,11 +73,6 @@ The final environment returned to:
 - Force Logging — `YES`
 - Broker Configuration Status — `SUCCESS`
 
-##Files
-
-The complete command sequence and actual execution output are available here:
-
-👉 Oracle 19c DataGuard Broker Switchover Failover Reinstate Command & Execution Output
 
 ## Data Guard Series
 
