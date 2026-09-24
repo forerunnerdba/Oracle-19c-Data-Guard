@@ -85,9 +85,7 @@ The complete command sequence and actual execution output are available here:
 
 ## Security Note
 
-
-> This repository documents a lab implementation. Review Oracle documentation and your environment-specific requirements before applying these steps to production.
-
+> Sensitive information such as passwords, private keys, tokens, credentials and environment-specific secrets has been removed or replaced with placeholders before publication.
 
 ## 👨‍💻 Author
 
